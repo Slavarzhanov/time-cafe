@@ -1,0 +1,15 @@
+{{define "content"}}
+<section class="card">
+    <h1>Рабочее место администратора</h1>
+    <p class="muted">
+        Каркас приложения запущен. Следующий шаг — сканирование карты и открытие визита.
+    </p>
+
+    <div class="scan">
+        <label for="card-uid">Считать карту</label>
+        <input id="card-uid" name="card_uid" type="text" autocomplete="off"
+               placeholder="Приложите карту к считывателю" autofocus>
+        <button type="button" disabled>Открыть визит</button>
+    </div>
+</section>
+{{end}}
