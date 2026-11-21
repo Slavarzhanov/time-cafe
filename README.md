@@ -5,7 +5,8 @@
 
 **Стек:** Go 1.25+ · PostgreSQL 16+ · Go templates + HTMX
 **Считыватель:** Smartec ST-CE011EM (EM-Marine 125 кГц, USB HID)
-**План работ:** [ROADMAP.md](ROADMAP.md)
+**План работ:** [ROADMAP.md](ROADMAP.md) · [параллельный план на двоих](ROADMAP-TEAM.md)
+**Техническое задание:** [ТЗ.md](ТЗ.md)
 
 ---
 
