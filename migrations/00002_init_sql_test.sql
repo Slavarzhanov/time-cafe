@@ -5,9 +5,9 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS timecafeschema.discounts
 (
-    discount_id integer NOT NULL,
+    discount_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     discount_name text NOT NULL,
-    discount_value integer NOT NULL,
+    discount_value_percent integer NOT NULL,
     PRIMARY KEY (discount_id)
 );
 
@@ -16,7 +16,7 @@ COMMENT ON TABLE timecafeschema.discounts
 
 CREATE TABLE IF NOT EXISTS timecafeschema.cards
 (
-    card_id integer NOT NULL,
+    card_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     card_number bigint NOT NULL,
     card_name text NOT NULL,
     card_discount integer,
@@ -28,32 +28,32 @@ COMMENT ON TABLE timecafeschema.cards
 
 CREATE TABLE IF NOT EXISTS timecafeschema.statuses
 (
-    status_id integer NOT NULL,
+    status_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     status_name text NOT NULL,
     PRIMARY KEY (status_id)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.extraservices
 (
-    extraservice_id integer NOT NULL,
+    extraservice_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     extraservice_name text NOT NULL,
-    extraservice_price money NOT NULL,
+    extraservice_price bigint NOT NULL,
     extraservice_description text,
     PRIMARY KEY (extraservice_id)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.rooms
 (
-    room_id integer NOT NULL,
+    room_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     room_name text NOT NULL,
     room_persons integer,
-    room_price numeric NOT NULL,
+    room_price bigint NOT NULL,
     PRIMARY KEY (room_id)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.professions
 (
-    profession_id integer NOT NULL,
+    profession_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     profession_name text NOT NULL,
     PRIMARY KEY (profession_id)
 );
@@ -63,47 +63,35 @@ COMMENT ON TABLE timecafeschema.professions
 
 CREATE TABLE IF NOT EXISTS timecafeschema.employees
 (
-    employer_id integer NOT NULL,
-    employer_surname text NOT NULL,
-    employer_name text NOT NULL,
-    employer_patronymic text,
-    employer_profession integer,
-    PRIMARY KEY (employer_id)
+    employee_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    employee_surname text NOT NULL,
+    employee_name text NOT NULL,
+    employee_patronymic text,
+    employee_profession integer,
+    CONSTRAINT employer_id PRIMARY KEY (employee_id)
 );
 
 COMMENT ON TABLE timecafeschema.employees
     IS 'table for timecafe workers data';
 
-CREATE TABLE IF NOT EXISTS timecafeschema.visits_extraservices
-(
-    visit_extraservice_id integer NOT NULL,
-    visit_extraservice_extraservice integer,
-    visit_extraservice_employer integer,
-    visit_extraservice_visit integer,
-    PRIMARY KEY (visit_extraservice_id)
-);
-
-COMMENT ON TABLE timecafeschema.visits_extraservices
-    IS 'table wich connect extraservice wich were ordered by client, with employer who gave this extraservice ';
-
 CREATE TABLE IF NOT EXISTS timecafeschema.shifts
 (
-    shift_id integer NOT NULL,
+    shift_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     shift_start timestamp with time zone NOT NULL,
     shift_end timestamp with time zone NOT NULL,
-    shift_start_employer integer,
-    shift_end_employer integer,
+    shift_start_employee integer,
+    shift_end_employee integer,
     PRIMARY KEY (shift_id)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.visits
 (
-    visit_id integer NOT NULL,
+    visit_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     visit_status integer NOT NULL,
     visit_card integer,
     visit_start timestamp with time zone NOT NULL,
     visit_end timestamp with time zone,
-    visit_final_cost numeric,
+    visit_final_cost bigint,
     visit_shift integer,
     visit_reservation integer,
     PRIMARY KEY (visit_id)
@@ -111,14 +99,47 @@ CREATE TABLE IF NOT EXISTS timecafeschema.visits
 
 CREATE TABLE IF NOT EXISTS timecafeschema.reservations
 (
-    reservation_id integer NOT NULL,
+    reservation_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     reservation_client_name text NOT NULL,
     reservation_client_phone text NOT NULL,
     reservation_room integer,
     reservation_start timestamp with time zone NOT NULL,
     reservation_end timestamp with time zone,
-    reservation_employer_accept integer,
+    reservation_employee_accept integer,
     PRIMARY KEY (reservation_id)
+);
+
+CREATE TABLE IF NOT EXISTS timecafeschema.roles
+(
+    role_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    role_name text NOT NULL,
+    PRIMARY KEY (role_id),
+    CONSTRAINT role_name_uq UNIQUE (role_name)
+        INCLUDE(role_name)
+);
+
+CREATE TABLE IF NOT EXISTS timecafeschema.users
+(
+    user_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    user_login text NOT NULL,
+    user_password_hash text NOT NULL,
+    user_is_active boolean NOT NULL,
+    user_employee_id integer NOT NULL,
+    user_role_id integer NOT NULL,
+    PRIMARY KEY (user_id),
+    CONSTRAINT user_employee_uq UNIQUE (user_employee_id)
+        INCLUDE(user_employee_id)
+);
+
+CREATE TABLE IF NOT EXISTS timecafeschema.visits_extraservices
+(
+    visit_extraservice_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
+    visit_extraservice_visit integer NOT NULL,
+    visit_extraservice_extrasevice integer,
+    visit_extraservice_quontity integer NOT NULL DEFAULT 1,
+    visit_exrtaservice_price_at_adding_moment bigint NOT NULL,
+    visit_extraservice_employee integer,
+    PRIMARY KEY (visit_extraservice_id)
 );
 
 ALTER TABLE IF EXISTS timecafeschema.cards
@@ -130,7 +151,7 @@ ALTER TABLE IF EXISTS timecafeschema.cards
 
 
 ALTER TABLE IF EXISTS timecafeschema.employees
-    ADD CONSTRAINT employer_profession_fk FOREIGN KEY (employer_profession)
+    ADD CONSTRAINT employer_profession_fk FOREIGN KEY (employee_profession)
     REFERENCES timecafeschema.professions (profession_id) MATCH SIMPLE
     ON UPDATE CASCADE
     ON DELETE SET NULL
@@ -141,32 +162,8 @@ COMMENT ON CONSTRAINT employer_profession_fk ON timecafeschema.employees
 
 
 
-ALTER TABLE IF EXISTS timecafeschema.visits_extraservices
-    ADD CONSTRAINT visit_extraservice_extraservice_fk FOREIGN KEY (visit_extraservice_extraservice)
-    REFERENCES timecafeschema.extraservices (extraservice_id) MATCH SIMPLE
-    ON UPDATE CASCADE
-    ON DELETE SET NULL
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS timecafeschema.visits_extraservices
-    ADD CONSTRAINT visit_extraservice_employer_fk FOREIGN KEY (visit_extraservice_employer)
-    REFERENCES timecafeschema.employees (employer_id) MATCH SIMPLE
-    ON UPDATE CASCADE
-    ON DELETE SET NULL
-    NOT VALID;
-
-
-ALTER TABLE IF EXISTS timecafeschema.visits_extraservices
-    ADD CONSTRAINT visit_extraservice_visit_fk FOREIGN KEY (visit_extraservice_visit)
-    REFERENCES timecafeschema.visits (visit_id) MATCH SIMPLE
-    ON UPDATE CASCADE
-    ON DELETE SET NULL
-    NOT VALID;
-
-
 ALTER TABLE IF EXISTS timecafeschema.shifts
-    ADD CONSTRAINT shift_start_employer_fk FOREIGN KEY (shift_start_employer)
+    ADD CONSTRAINT shift_start_employee_fk FOREIGN KEY (shift_start_employee)
     REFERENCES timecafeschema.employees (employee_id) MATCH SIMPLE
     ON UPDATE CASCADE
     ON DELETE SET NULL
@@ -174,7 +171,7 @@ ALTER TABLE IF EXISTS timecafeschema.shifts
 
 
 ALTER TABLE IF EXISTS timecafeschema.shifts
-    ADD CONSTRAINT shift_end_employer_fk FOREIGN KEY (shift_end_employer)
+    ADD CONSTRAINT shift_end_employee_fk FOREIGN KEY (shift_end_employee)
     REFERENCES timecafeschema.employees (employee_id) MATCH SIMPLE
     ON UPDATE CASCADE
     ON DELETE SET NULL
@@ -222,10 +219,50 @@ ALTER TABLE IF EXISTS timecafeschema.reservations
 
 
 ALTER TABLE IF EXISTS timecafeschema.reservations
-    ADD CONSTRAINT reservation_employer_fk FOREIGN KEY (reservation_employer_accept)
-    REFERENCES timecafeschema.employees (employer_id) MATCH SIMPLE
+    ADD CONSTRAINT reservation_employee_fk FOREIGN KEY (reservation_employee_accept)
+    REFERENCES timecafeschema.employees (employee_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS timecafeschema.users
+    ADD CONSTRAINT user_employee_fk FOREIGN KEY (user_employee_id)
+    REFERENCES timecafeschema.employees (employee_id) MATCH SIMPLE
     ON UPDATE CASCADE
-    ON DELETE SET NULL
+    ON DELETE CASCADE
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS timecafeschema.users
+    ADD CONSTRAINT user_role_fk FOREIGN KEY (user_role_id)
+    REFERENCES timecafeschema.roles (role_id) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS timecafeschema.visits_extraservices
+    ADD CONSTRAINT ve_visit_fk FOREIGN KEY (visit_extraservice_visit)
+    REFERENCES timecafeschema.visits (visit_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS timecafeschema.visits_extraservices
+    ADD CONSTRAINT ve_extraservice_fk FOREIGN KEY (visit_extraservice_extrasevice)
+    REFERENCES timecafeschema.extraservices (extraservice_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS timecafeschema.visits_extraservices
+    ADD CONSTRAINT ve_employee_fk FOREIGN KEY (visit_extraservice_employee)
+    REFERENCES timecafeschema.employees (employee_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
     NOT VALID;
 
 END;
