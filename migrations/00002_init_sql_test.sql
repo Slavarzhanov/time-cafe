@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS timecafeschema.discounts
     discount_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     discount_name text NOT NULL,
     discount_value_percent integer NOT NULL,
-    PRIMARY KEY (discount_id)
+    PRIMARY KEY (discount_id),
+    CONSTRAINT discount_name_uq UNIQUE (discount_name)
 );
 
 COMMENT ON TABLE timecafeschema.discounts
@@ -30,7 +31,8 @@ CREATE TABLE IF NOT EXISTS timecafeschema.statuses
 (
     status_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     status_name text NOT NULL,
-    PRIMARY KEY (status_id)
+    PRIMARY KEY (status_id),
+    CONSTRAINT status_name_uq UNIQUE (status_name)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.extraservices
@@ -39,7 +41,8 @@ CREATE TABLE IF NOT EXISTS timecafeschema.extraservices
     extraservice_name text NOT NULL,
     extraservice_price bigint NOT NULL,
     extraservice_description text,
-    PRIMARY KEY (extraservice_id)
+    PRIMARY KEY (extraservice_id),
+    CONSTRAINT extraservice_name_uq UNIQUE (extraservice_name)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.rooms
@@ -48,14 +51,16 @@ CREATE TABLE IF NOT EXISTS timecafeschema.rooms
     room_name text NOT NULL,
     room_persons integer,
     room_price bigint NOT NULL,
-    PRIMARY KEY (room_id)
+    PRIMARY KEY (room_id),
+    CONSTRAINT room_name_uq UNIQUE (room_name)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.professions
 (
     profession_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     profession_name text NOT NULL,
-    PRIMARY KEY (profession_id)
+    PRIMARY KEY (profession_id),
+    CONSTRAINT profession_name_uq UNIQUE (profession_name)
 );
 
 COMMENT ON TABLE timecafeschema.professions
@@ -68,7 +73,7 @@ CREATE TABLE IF NOT EXISTS timecafeschema.employees
     employee_name text NOT NULL,
     employee_patronymic text,
     employee_profession integer,
-    CONSTRAINT employer_id PRIMARY KEY (employee_id)
+    CONSTRAINT employee_id PRIMARY KEY (employee_id)
 );
 
 COMMENT ON TABLE timecafeschema.employees
@@ -115,7 +120,6 @@ CREATE TABLE IF NOT EXISTS timecafeschema.roles
     role_name text NOT NULL,
     PRIMARY KEY (role_id),
     CONSTRAINT role_name_uq UNIQUE (role_name)
-        INCLUDE(role_name)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.users
@@ -127,17 +131,16 @@ CREATE TABLE IF NOT EXISTS timecafeschema.users
     user_employee_id integer NOT NULL,
     user_role_id integer NOT NULL,
     PRIMARY KEY (user_id),
-    CONSTRAINT user_employee_uq UNIQUE (user_employee_id)
-        INCLUDE(user_employee_id)
+    CONSTRAINT user_login_uq UNIQUE (user_login)
 );
 
 CREATE TABLE IF NOT EXISTS timecafeschema.visits_extraservices
 (
     visit_extraservice_id integer NOT NULL GENERATED ALWAYS AS IDENTITY,
     visit_extraservice_visit integer NOT NULL,
-    visit_extraservice_extrasevice integer,
-    visit_extraservice_quontity integer NOT NULL DEFAULT 1,
-    visit_exrtaservice_price_at_adding_moment bigint NOT NULL,
+    visit_extraservice_extraservice integer,
+    visit_extraservice_quantity integer NOT NULL DEFAULT 1,
+    visit_extraservice_price_at_adding_moment bigint NOT NULL,
     visit_extraservice_employee integer,
     PRIMARY KEY (visit_extraservice_id)
 );
@@ -245,13 +248,13 @@ ALTER TABLE IF EXISTS timecafeschema.users
 ALTER TABLE IF EXISTS timecafeschema.visits_extraservices
     ADD CONSTRAINT ve_visit_fk FOREIGN KEY (visit_extraservice_visit)
     REFERENCES timecafeschema.visits (visit_id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
     NOT VALID;
 
 
 ALTER TABLE IF EXISTS timecafeschema.visits_extraservices
-    ADD CONSTRAINT ve_extraservice_fk FOREIGN KEY (visit_extraservice_extrasevice)
+    ADD CONSTRAINT ve_extraservice_fk FOREIGN KEY (visit_extraservice_extraservice)
     REFERENCES timecafeschema.extraservices (extraservice_id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
