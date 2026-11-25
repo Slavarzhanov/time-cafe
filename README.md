@@ -5,7 +5,8 @@
 
 **Стек:** Go 1.25+ · PostgreSQL 16+ · Go templates + HTMX
 **Считыватель:** Smartec ST-CE011EM (EM-Marine 125 кГц, USB HID)
-**План работ:** [ROADMAP.md](ROADMAP.md)
+**План работ:** [ROADMAP.md](ROADMAP.md) · [параллельный план на двоих](ROADMAP-TEAM.md)
+**Техническое задание:** [ТЗ.md](ТЗ.md)
 
 ---
 
@@ -75,8 +76,21 @@ web/               шаблоны и статика (встроены через
   (5 байт EM-Marine). Нормализация выполняется на входе, до записи в БД.
 - **Цена услуги** фиксируется в `visit_services.price_at_moment`,
   поэтому изменение прайса не переписывает старые чеки.
-- **Баланс карты** = `SUM(transactions.amount)`, отдельного поля нет.
+- **Оплата** — постоплатой при закрытии визита; баланса на карте нет.
+  Текущая миграция `000001` ещё содержит старую модель проводок — см.
+  [`docs/knowledge/db.md`](docs/knowledge/db.md).
 - Ветки: `feat/<id>-<short-name>`; коммиты — Conventional Commits.
+
+## Для участников и агентов
+
+- [`AGENTS.md`](AGENTS.md) — правила проекта и карта субагентов.
+- [`docs/knowledge/`](docs/knowledge/README.md) — общие знания: домен, БД, API, UI, решения.
+- [`docs/design/stylebook.md`](docs/design/stylebook.md) — стайлбук.
+- [`docs/qa/README.md`](docs/qa/README.md) — стратегия тестирования и отчёты.
+- [`docs/report/`](docs/report/README.md) — текст ПЗ и замечания.
+
+Субагенты лежат в `.opencode/agents/`: `db`, `backend`, `frontend`, `style`,
+`report`, `qa-db`, `qa-backend`, `qa-frontend`.
 
 ## Статус
 
